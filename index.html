@@ -325,6 +325,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    min-width: 0;
   }
   .topbar-logo {
     width: 32px;
@@ -342,6 +343,9 @@
     font-size: 15px;
     letter-spacing: -0.02em;
     color: var(--star);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .topbar-status {
     display: flex;
@@ -1330,7 +1334,7 @@
   @media (max-width: 640px) {
     .topbar { padding: 10px 12px; }
     .topbar-date { display: none; }
-    .topbar-title { font-size: 13px; }
+    .topbar-title { font-size: 14px; max-width: 200px; }
     .dock-panel {
       bottom: 16px;
       padding: 5px;
@@ -2605,8 +2609,8 @@ canvas.addEventListener('mouseup', e => {
 });
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
-  const zoomSpeed = Math.max(0.05, targetSph.radius * 0.003);
-  targetSph.radius = Math.max(1.5, Math.min(6000, targetSph.radius + e.deltaY * zoomSpeed));
+  const zoomFactor = 1 + (e.deltaY * 0.001);
+  targetSph.radius = Math.max(1.5, Math.min(6000, targetSph.radius * zoomFactor));
 }, {passive:false});
 
 // Touch
@@ -2629,8 +2633,8 @@ canvas.addEventListener('touchmove', e => {
   } else if (e.touches.length === 2 && tDist) {
     const dx = e.touches[0].clientX-e.touches[1].clientX, dy = e.touches[0].clientY-e.touches[1].clientY;
     const d = Math.sqrt(dx*dx+dy*dy);
-    const zoomSpeed = Math.max(0.05, targetSph.radius * 0.005);
-    targetSph.radius = Math.max(1.5, Math.min(6000, targetSph.radius-(d-tDist)*zoomSpeed));
+    const zoomFactor = 1 - ((d - tDist) * 0.005);
+    targetSph.radius = Math.max(1.5, Math.min(6000, targetSph.radius * zoomFactor));
     tDist = d;
   }
 }, {passive:false});
@@ -2924,23 +2928,38 @@ $('btn-screenshot').onclick = () => {
 
 // Open share modal (used by both dock button and info panel)
 function openShareModal() {
-  currentPlatform = 'whatsapp';
-  currentFormat = 'story';
-
-  document.querySelectorAll('.plat-btn').forEach(b => b.classList.toggle('active', b.dataset.plat === 'whatsapp'));
-  document.querySelectorAll('.fmt-tab').forEach(b => b.classList.toggle('active', b.dataset.fmt === 'story'));
-
-  if (!$('quote-options').children.length) buildQuotePicker();
-
   const bodyName = selected ? selected.data.name : 'Solar System';
-  $('share-title').textContent = bodyName;
-  $('share-sub').textContent = 'Share this view to your favorite platform';
+  const text = `Exploring ${bodyName} in the Solar System Explorer!`;
+  const url = window.location.href;
 
-  updateSpotifyCard();
-  updatePreviewThumb();
+  if (navigator.share) {
+    navigator.share({
+      title: 'Solar System Explorer',
+      text: text,
+      url: url
+    }).then(() => {
+      showToast('Thanks for sharing! 🚀');
+    }).catch(err => {
+      console.log('Error sharing:', err);
+    });
+  } else {
+    currentPlatform = 'whatsapp';
+    currentFormat = 'story';
 
-  $('quote-picker').style.display = 'none';
-  $('share-modal').classList.add('open');
+    document.querySelectorAll('.plat-btn').forEach(b => b.classList.toggle('active', b.dataset.plat === 'whatsapp'));
+    document.querySelectorAll('.fmt-tab').forEach(b => b.classList.toggle('active', b.dataset.fmt === 'story'));
+
+    if (!$('quote-options').children.length) buildQuotePicker();
+
+    $('share-title').textContent = bodyName;
+    $('share-sub').textContent = 'Share this view to your favorite platform';
+
+    updateSpotifyCard();
+    updatePreviewThumb();
+
+    $('quote-picker').style.display = 'none';
+    $('share-modal').classList.add('open');
+  }
 }
 
 // Info panel share button
