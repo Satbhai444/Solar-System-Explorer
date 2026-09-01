@@ -1,8 +1,16 @@
-# 🌌 Solar System Explorer
+# 🌌 Solar System Explorer - Free Interactive 3D Space Simulator
 
-> Interactive 3D Solar System Visualization — Built with Three.js
+> **Best Free Online 3D Solar System Visualization** — Built with Three.js & WebGL
 
-An immersive, interactive 3D visualization of our solar system. Explore planets, moons, spacecraft, and learn fascinating facts about our cosmic neighborhood. Perfect for students, space enthusiasts, and curious minds!
+An immersive, interactive 3D visualization of our solar system. Explore planets, moons, spacecraft, and learn fascinating facts about our cosmic neighborhood. **Perfect for students, teachers, space enthusiasts, and curious minds!**
+
+## 🔍 SEO Keywords
+
+`solar system 3d` · `interactive solar system` · `3d planets` · `space explorer` · `planet simulator` · `solar system online` · `learn planets` · `astronomy for kids` · `3d space visualization` · `planet facts` · `solar system tour` · `space exploration` · `free space simulator` · `online planetarium` · `planets of solar system` · `solar system model` · `interactive learning` · `educational space app` · `3d space game` · `planet orbit simulation`
+
+## 🌐 Live Demo
+
+**👉 [https://solar-system-exploreerr.vercel.app/](https://solar-system-exploreerr.vercel.app/)**
 
 ![Preview](https://raw.githubusercontent.com/Satbhai444/Solar-System-Explorer/main/SS/Screenshot%202026-09-01%20210126.png)
 
