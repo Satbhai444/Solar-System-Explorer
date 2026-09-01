@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Solar System Explorer - Interactive 3D Planets & Space Visualization</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪐</text></svg>">
 <meta name="description" content="Explore our solar system in stunning interactive 3D! Click planets to learn facts, take guided tours, share to social media. Perfect for students, teachers & space enthusiasts. Free online 3D space simulator with real orbital mechanics.">
 <meta name="keywords" content="solar system 3d, interactive solar system, 3d planets, space explorer, planet simulator, solar system online, learn planets, astronomy for kids, 3d space visualization, planet facts, solar system tour, space exploration, three.js solar system, free space simulator, online planetarium, planets of solar system, solar system model, interactive learning, educational space app, explore solar system, 3d space game, cosmic visualization, solar system animation, planet orbit simulation">
 <meta name="author" content="Solar System Explorer">
@@ -1963,7 +1964,7 @@ const W = window.innerWidth, H = window.innerHeight;
 const scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2(0x060810, 0.0005);
 
-const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 4000);
+const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 8000);
 camera.position.set(0, 35, 75);
 
 const canvas = $('scene');
@@ -2573,7 +2574,8 @@ canvas.addEventListener('mouseup', e => {
 });
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
-  targetSph.radius = Math.max(6, Math.min(350, targetSph.radius + e.deltaY*.12));
+  const zoomSpeed = Math.max(0.05, targetSph.radius * 0.003);
+  targetSph.radius = Math.max(1.5, Math.min(6000, targetSph.radius + e.deltaY * zoomSpeed));
 }, {passive:false});
 
 // Touch
@@ -2596,7 +2598,8 @@ canvas.addEventListener('touchmove', e => {
   } else if (e.touches.length === 2 && tDist) {
     const dx = e.touches[0].clientX-e.touches[1].clientX, dy = e.touches[0].clientY-e.touches[1].clientY;
     const d = Math.sqrt(dx*dx+dy*dy);
-    targetSph.radius = Math.max(6, Math.min(350, targetSph.radius-(d-tDist)*.4));
+    const zoomSpeed = Math.max(0.05, targetSph.radius * 0.005);
+    targetSph.radius = Math.max(1.5, Math.min(6000, targetSph.radius-(d-tDist)*zoomSpeed));
     tDist = d;
   }
 }, {passive:false});
