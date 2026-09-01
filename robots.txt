@@ -1,0 +1,25 @@
+# Robots.txt for Solar System Explorer
+# https://solar-system-exploreerr.vercel.app/
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://solar-system-exploreerr.vercel.app/sitemap.xml
+
+# Crawl-delay (optional, be nice to shared hosting)
+Crawl-delay: 1
+
+# Specific bot instructions
+User-agent: Googlebot
+Allow: /
+User-agent: Bingbot
+Allow: /
+User-agent: Slurp
+Allow: /
+User-agent: DuckDuckBot
+Allow: /
+User-agent: Baiduspider
+Allow: /
+User-agent: YandexBot
+Allow: /
