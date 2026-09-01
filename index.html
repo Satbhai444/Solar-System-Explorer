@@ -310,8 +310,8 @@
     justify-content: space-between;
     padding: 10px 16px;
     background: rgba(6,8,16,0.85);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(200%); box-shadow: 0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
+    -webkit-backdrop-filter: blur(40px) saturate(200%); box-shadow: 0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
     border-bottom: 1px solid rgba(237,229,216,0.06);
   }
   .topbar-brand {
@@ -398,8 +398,8 @@
     transform: translateX(-50%);
     z-index: 100;
     background: rgba(30, 35, 50, 0.75);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(200%); box-shadow: 0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
+    -webkit-backdrop-filter: blur(40px) saturate(200%); box-shadow: 0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
     border: 1px solid rgba(255,255,255,0.12);
     border-radius: 18px;
     padding: 6px;
@@ -544,8 +544,8 @@
     max-height: calc(100vh - 120px);
     z-index: 20;
     background: var(--glass);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(200%); box-shadow: 0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
+    -webkit-backdrop-filter: blur(40px) saturate(200%); box-shadow: 0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     padding: 20px;
@@ -708,8 +708,8 @@
     left: 16px;
     z-index: 20;
     background: var(--glass);
-    backdrop-filter: blur(24px) saturate(180%);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(200%); box-shadow: 0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
+    -webkit-backdrop-filter: blur(40px) saturate(200%); box-shadow: 0 24px 64px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 24px;
     border: 1px solid var(--glass-border);
     border-radius: 16px;
     padding: 18px;
@@ -1422,6 +1422,16 @@
         <circle cx="12" cy="12" r="3" stroke-width="2"/>
       </svg>
       <span class="dock-label">Orbits</span>
+    </button>
+    
+    <!-- Music -->
+    <button class="dock-btn" id="btn-music" title="Toggle Music">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 18V5l12-2v13"></path>
+        <circle cx="6" cy="18" r="3"></circle>
+        <circle cx="18" cy="16" r="3"></circle>
+      </svg>
+      <span class="dock-label">Music</span>
     </button>
     <!-- Labels -->
     <button class="dock-btn" id="btn-labels" title="Toggle labels">
@@ -2305,6 +2315,24 @@ sunGlow1.position.set(0,0,0); scene.add(sunGlow1);
 const sunGlow2 = mkGlow(0xFF8847, 55);
 sunGlow2.position.set(0,0,0); scene.add(sunGlow2);
 
+// ── LENS FLARE ───────────────────────────────────────────
+const flareCanvas = document.createElement('canvas');
+flareCanvas.width = 256; flareCanvas.height = 256;
+const flareCtx = flareCanvas.getContext('2d');
+const flareGrd = flareCtx.createRadialGradient(128,128,0, 128,128,128);
+flareGrd.addColorStop(0, 'rgba(255, 255, 255, 1)');
+flareGrd.addColorStop(0.2, 'rgba(255, 230, 200, 0.8)');
+flareGrd.addColorStop(0.4, 'rgba(255, 150, 50, 0.4)');
+flareGrd.addColorStop(1, 'rgba(0,0,0,0)');
+flareCtx.fillStyle = flareGrd;
+flareCtx.fillRect(0,0,256,256);
+const flareTex = new THREE.CanvasTexture(flareCanvas);
+const flareMat = new THREE.SpriteMaterial({ map: flareTex, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false });
+const sunFlare = new THREE.Sprite(flareMat);
+sunFlare.scale.set(600, 600, 1);
+scene.add(sunFlare); // Attach flare to scene
+
+
 setProgress(50);
 
 // ── BUILD PLANETS ─────────────────────────────────────────
@@ -3015,6 +3043,40 @@ $('time-slider').oninput = function() {
   timeSpeed = 0.005 + (v/100)*0.295;
 };
 
+
+// ── AUDIO ────────────────────────────────────────────────
+let audioCtx;
+let droneOsc;
+let droneGain;
+let isMusicPlaying = false;
+function initAudio() {
+  if (audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  droneOsc = audioCtx.createOscillator();
+  droneOsc.type = 'sine';
+  droneOsc.frequency.setValueAtTime(45, audioCtx.currentTime); // Deep bass
+  
+  droneGain = audioCtx.createGain();
+  droneGain.gain.setValueAtTime(0, audioCtx.currentTime);
+  
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 400;
+  
+  droneOsc.connect(filter);
+  filter.connect(droneGain);
+  droneGain.connect(audioCtx.destination);
+  droneOsc.start();
+}
+
+$('btn-music').onclick = () => {
+  if (!audioCtx) initAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  isMusicPlaying = !isMusicPlaying;
+  $('btn-music').classList.toggle('active', isMusicPlaying);
+  droneGain.gain.setTargetAtTime(isMusicPlaying ? 0.4 : 0, audioCtx.currentTime, 0.5);
+};
+
 // ── THEME TOGGLE ──────────────────────────────────────────
 $('theme-toggle').onclick = () => {
   const root = document.documentElement;
@@ -3230,6 +3292,10 @@ function animate() {
       px = 0; pz = 0;
     }
     // Camera orbits the body at the user's chosen spherical offset
+    if (tourActive && !isDragging) {
+       targetSph.theta += dt * 0.15; // Cinematic auto-orbit
+       targetSph.phi = Math.PI / 2.2 + Math.sin(elapsed * 0.5) * 0.1;
+    }
     const cx = spherical.radius*Math.sin(spherical.phi)*Math.cos(spherical.theta);
     const cy = spherical.radius*Math.cos(spherical.phi);
     const cz = spherical.radius*Math.sin(spherical.phi)*Math.sin(spherical.theta);
