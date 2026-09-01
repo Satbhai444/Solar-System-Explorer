@@ -2,11 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Solar System Explorer - Interactive 3D Planets & Space Visualization</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪐</text></svg>">
-<meta name="description" content="Explore our solar system in stunning interactive 3D! Click planets to learn facts, take guided tours, share to social media. Perfect for students, teachers & space enthusiasts. Free online 3D space simulator with real orbital mechanics.">
-<meta name="keywords" content="solar system 3d, interactive solar system, 3d planets, space explorer, planet simulator, solar system online, learn planets, astronomy for kids, 3d space visualization, planet facts, solar system tour, space exploration, three.js solar system, free space simulator, online planetarium, planets of solar system, solar system model, interactive learning, educational space app, explore solar system, 3d space game, cosmic visualization, solar system animation, planet orbit simulation">
+<title>Solar System Explorer | Free Interactive 3D Solar System Simulator Online</title>
+<meta name="title" content="Solar System Explorer | Free Interactive 3D Solar System Simulator Online">
+<meta name="description" content="Explore the solar system in stunning 3D! Click any planet to learn facts, take guided tours, and share views. Perfect for students learning astronomy. Free online planet simulator with real orbital mechanics - no download required.">
+<meta name="keywords" content="solar system 3d, interactive solar system, 3d planets, space explorer, planet simulator, solar system online, learn planets, astronomy for kids, 3d space visualization, planet facts, solar system tour, space exploration, three.js solar system, free space simulator, online planetarium, planets of solar system, solar system model, interactive learning, educational space app, explore solar system, 3d space game, cosmic visualization, solar system animation, planet orbit simulation, astronomy simulator, planet facts for kids, learn astronomy, space education, 3d earth, 3d mars, 3d jupiter, 3d saturn, mercurcy facts, venus planet, jupiter moons, saturn rings, uranus planet, neptune facts, pluto dwarf planet, voyager spacecraft, nasa solar system, science education, k12 education, stem education, virtual planetarium, webgl solar system, 3d universe, galaxy explorer, solar system for beginners, what is solar system, how many planets, planet names, order of planets">
 <meta name="author" content="Solar System Explorer">
 <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
 <meta name="googlebot" content="index, follow">
@@ -19,20 +20,22 @@
 <!-- Open Graph / Facebook -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://solar-system-exploreerr.vercel.app/">
-<meta property="og:title" content="Solar System Explorer - Interactive 3D Planets & Space Visualization">
-<meta property="og:description" content="Explore our solar system in stunning interactive 3D! Click planets to learn facts, take guided tours, share to social media. Free online 3D space simulator with real orbital mechanics.">
+<meta property="og:title" content="Solar System Explorer | Free Interactive 3D Solar System Simulator Online">
+<meta property="og:description" content="Explore the solar system in stunning 3D! Click any planet to learn facts, take guided tours, and share views. Perfect for students learning astronomy. Free online planet simulator with real orbital mechanics - no download required.">
 <meta property="og:image" content="https://solar-system-exploreerr.vercel.app/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Solar System Explorer - Interactive 3D visualization of planets">
 <meta property="og:site_name" content="Solar System Explorer">
 <meta property="og:locale" content="en_US">
 
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:url" content="https://solar-system-exploreerr.vercel.app/">
-<meta name="twitter:title" content="Solar System Explorer - Interactive 3D Planets & Space Visualization">
-<meta name="twitter:description" content="Explore our solar system in stunning interactive 3D! Click planets to learn facts, take guided tours, share to social media. Free online 3D space simulator with real orbital mechanics.">
+<meta name="twitter:title" content="Solar System Explorer | Free Interactive 3D Solar System Simulator Online">
+<meta name="twitter:description" content="Explore the solar system in stunning 3D! Click any planet to learn facts, take guided tours, and share views. Perfect for students learning astronomy. Free online planet simulator with real orbital mechanics - no download required.">
 <meta name="twitter:image" content="https://solar-system-exploreerr.vercel.app/og-image.png">
+<meta name="twitter:image:alt" content="Solar System Explorer - Interactive 3D visualization">
 <meta name="twitter:creator" content="@Satbhai444">
 
 <!-- Canonical URL -->
@@ -47,6 +50,8 @@
 <meta name="apple-mobile-web-app-title" content="Solar System">
 
 <!-- Preconnect -->
+<link rel="dns-prefetch" href="https://fonts.googleapis.com">
+<link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -1404,11 +1409,7 @@
   </div>
   <div class="topbar-right">
     <div class="topbar-date" id="topbar-date">—</div>
-    <button class="topbar-theme" id="theme-toggle" title="Toggle theme">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
-        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>
-      </svg>
-    </button>
+
   </div>
 </header>
 
@@ -3078,16 +3079,7 @@ $('btn-music').onclick = () => {
 };
 
 // ── THEME TOGGLE ──────────────────────────────────────────
-$('theme-toggle').onclick = () => {
-  const root = document.documentElement;
-  const isDark = root.getAttribute('data-theme') !== 'light';
-  root.setAttribute('data-theme', isDark ? 'light' : 'dark');
-  $('theme-toggle').innerHTML = isDark
-    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
-    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/></svg>';
-  renderer.setClearColor(isDark ? 0x060810 : 0xE8E4DC);
-  scene.fog = new THREE.FogExp2(isDark ? 0x060810 : 0xE8E4DC, 0.0005);
-};
+
 
 // ── TOUR ─────────────────────────────────────────────────
 $('btn-tour').onclick = () => {
