@@ -100,9 +100,11 @@ git clone https://github.com/Satbhai444/Solar-System-Explorer.git
 
 ```
 Solar-System-Explorer/
-├── solar-system.html    # Main application (single file)
+├── index.html          # Main application (single file)
 ├── three.min.js        # Three.js library
-└── README.md           # This file
+├── vercel.json         # Vercel configuration
+├── README.md           # This file
+└── LICENSE            # MIT License
 ```
 
 ## 🎨 Screenshots
