@@ -2609,7 +2609,7 @@ canvas.addEventListener('mouseup', e => {
 });
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
-  const zoomFactor = 1 + (e.deltaY * 0.001);
+  const zoomFactor = Math.pow(1.001, e.deltaY);
   targetSph.radius = Math.max(1.5, Math.min(6000, targetSph.radius * zoomFactor));
 }, {passive:false});
 
@@ -2633,7 +2633,7 @@ canvas.addEventListener('touchmove', e => {
   } else if (e.touches.length === 2 && tDist) {
     const dx = e.touches[0].clientX-e.touches[1].clientX, dy = e.touches[0].clientY-e.touches[1].clientY;
     const d = Math.sqrt(dx*dx+dy*dy);
-    const zoomFactor = 1 - ((d - tDist) * 0.005);
+    const zoomFactor = Math.pow(0.995, d - tDist);
     targetSph.radius = Math.max(1.5, Math.min(6000, targetSph.radius * zoomFactor));
     tDist = d;
   }
