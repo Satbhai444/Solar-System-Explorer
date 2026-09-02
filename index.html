@@ -1556,6 +1556,17 @@
         <path d="M12 6v6l4 2"/>
       </svg>
     </button>
+    <button class="topbar-btn" id="btn-neo" title="Near-Earth Objects" style="display:none" onclick="showAsteroids()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16">
+        <path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 17l-6.5 4 2-7.5L2 9h7z"/>
+      </svg>
+    </button>
+    <button class="topbar-btn" id="btn-mars-weather" title="Mars Weather" style="display:none" onclick="showMarsWeather()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M4 12c2-3 4-4 8-4s6 1 8 4"/>
+      </svg>
+    </button>
     <div class="topbar-date" id="topbar-date">—</div>
     <button class="topbar-theme" id="theme-toggle" title="Toggle theme">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
@@ -1687,6 +1698,14 @@
         <path d="M12 8v4M10 14h4"/>
       </svg>
       Tour
+    </button>
+    <button class="info-action-btn" id="info-images-btn" title="NASA Photos" style="grid-column: 1 / -1;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <path d="M21 15l-5-5L5 21"/>
+      </svg>
+      NASA Photos
     </button>
   </div>
   <p class="info-desc" id="info-desc">—</p>
@@ -1948,28 +1967,116 @@ function doPrint() {
   window.print();
 }
 
-// NASA API Integration
-async function fetchNASAData() {
+// =============================================
+// NASA API Integration with DX0yW2Iwe7lfrl1NHGivuraVb3xNZj1LavhGve4P
+// =============================================
+
+const NASA_API_KEY = 'DX0yW2Iwe7lfrl1NHGivuraVb3xNZj1LavhGve4P';
+const NASA_BASE = 'https://api.nasa.gov';
+
+// Cache storage
+const nasaCache = {
+  apod: { data: null, timestamp: 0 },
+  marsWeather: { data: null, timestamp: 0 },
+  asteroids: { data: null, timestamp: 0 },
+  images: {}
+};
+
+const CACHE_DURATION = 1000 * 60 * 30; // 30 minutes
+
+// ── APOD: Astronomy Picture of the Day ──────────────────────────
+async function fetchAPOD() {
+  const now = Date.now();
+  if (nasaCache.apod.data && (now - nasaCache.apod.timestamp) < CACHE_DURATION) {
+    return nasaCache.apod.data;
+  }
   try {
-    const apodResponse = await fetch('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY');
-    const apodData = await apodResponse.json();
-
-    const startDate = new Date().toISOString().split('T')[0];
-    const endDate = new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0];
-    const neoResponse = await fetch('https://api.nasa.gov/neo/rest/v1/feed?start_date=' + startDate + '&end_date=' + endDate + '&api_key=DEMO_KEY');
-    const neoData = await neoResponse.json();
-
-    return { apod: apodData, neo: neoData };
+    const res = await fetch(`${NASA_BASE}/planetary/apod?api_key=${NASA_API_KEY}`);
+    if (!res.ok) throw new Error('APOD fetch failed');
+    const data = await res.json();
+    nasaCache.apod = { data, timestamp: now };
+    return data;
   } catch (e) {
-    console.warn('NASA API fetch failed:', e);
-    return { apod: null, neo: null };
+    console.warn('APOD error:', e);
+    return nasaCache.apod.data || null;
   }
 }
 
-// Display APOD as background option
-async function loadAPOD() {
-  const data = await fetchNASAData();
-  if (data.apod && data.apod.url) {
+// ── InSight Mars Weather ────────────────────────────────────────
+async function fetchMarsWeather() {
+  const now = Date.now();
+  if (nasaCache.marsWeather.data && (now - nasaCache.marsWeather.timestamp) < CACHE_DURATION) {
+    return nasaCache.marsWeather.data;
+  }
+  try {
+    const res = await fetch(`${NASA_BASE}/insight_weather/?api_key=${NASA_API_KEY}&feedtype=json&ver=1.0`);
+    if (!res.ok) throw new Error('Mars weather fetch failed');
+    const data = await res.json();
+    if (data.sol_keys && data.sol_keys.length > 0) {
+      const latestSol = data.sol_keys[data.sol_keys.length - 1];
+      const solData = data[latestSol];
+      nasaCache.marsWeather = {
+        data: { sol: latestSol, ...solData },
+        timestamp: now
+      };
+    }
+    return nasaCache.marsWeather.data;
+  } catch (e) {
+    console.warn('Mars weather error:', e);
+    return nasaCache.marsWeather.data || null;
+  }
+}
+
+// ── Asteroids NeoWs ─────────────────────────────────────────────
+async function fetchAsteroids(days = 7) {
+  const now = Date.now();
+  if (nasaCache.asteroids.data && (now - nasaCache.asteroids.timestamp) < CACHE_DURATION) {
+    return nasaCache.asteroids.data;
+  }
+  try {
+    const startDate = new Date().toISOString().split('T')[0];
+    const endDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const res = await fetch(`${NASA_BASE}/neo/rest/v1/feed?start_date=${startDate}&end_date=${endDate}&api_key=${NASA_API_KEY}`);
+    if (!res.ok) throw new Error('Asteroids fetch failed');
+    const data = await res.json();
+    nasaCache.asteroids = { data, timestamp: now };
+    return data;
+  } catch (e) {
+    console.warn('Asteroids error:', e);
+    return nasaCache.asteroids.data || null;
+  }
+}
+
+// ── NASA Image Library ───────────────────────────────────────────
+async function searchNASAImages(query, limit = 6) {
+  const cacheKey = query + limit;
+  const now = Date.now();
+  if (nasaCache.images[cacheKey] && (now - nasaCache.images[cacheKey].timestamp) < CACHE_DURATION) {
+    return nasaCache.images[cacheKey].data;
+  }
+  try {
+    const res = await fetch(`https://images-api.nasa.gov/search?q=${encodeURIComponent(query)}&media_type=image&page_size=${limit}`);
+    if (!res.ok) throw new Error('NASA Images fetch failed');
+    const data = await res.json();
+    const images = data.collection.items.map(item => ({
+      url: item.links?.[0]?.href || '',
+      title: item.data?.[0]?.title || '',
+      description: item.data?.[0]?.description || '',
+      date: item.data?.[0]?.date_created || ''
+    })).filter(img => img.url);
+    nasaCache.images[cacheKey] = { data: images, timestamp: now };
+    return images;
+  } catch (e) {
+    console.warn('NASA Images error:', e);
+    return nasaCache.images[cacheKey]?.data || [];
+  }
+}
+
+// ── Initialize NASA Features ─────────────────────────────────────
+async function initNASAFeatures() {
+  // Load APOD button
+  const apod = await fetchAPOD();
+  if (apod) {
     const btn = document.getElementById('btn-apod');
     if (btn) {
       btn.style.display = 'flex';
@@ -1977,19 +2084,177 @@ async function loadAPOD() {
       btn.style.padding = '0 10px';
       btn.style.gap = '6px';
       btn.style.fontSize = '11px';
-      btn.onclick = function() {
-        window.open(data.apod.hdurl || data.apod.url, '_blank');
-      };
+      btn.title = apod.title || 'NASA Astronomy Picture of the Day';
+      btn.onclick = function() { showAPODModal(apod); };
     }
   }
-  if (data.neo && data.neo.near_earth_objects) {
-    const totalNEOs = Object.values(data.neo.near_earth_objects).flat().length;
-    console.log('Near-Earth Objects this week:', totalNEOs);
+
+  // Pre-fetch asteroids count
+  const neo = await fetchAsteroids();
+  if (neo && neo.element_count) {
+    console.log('Near-Earth Objects this week:', neo.element_count);
+    const neoBtn = document.getElementById('btn-neo');
+    if (neoBtn) {
+      neoBtn.style.display = 'flex';
+      neoBtn.style.width = 'auto';
+      neoBtn.style.padding = '0 8px';
+      neoBtn.title = `${neo.element_count} Near-Earth Objects this week`;
+    }
   }
 }
 
-// Initialize NASA data on load
-loadAPOD();
+// ── APOD Modal ──────────────────────────────────────────────────
+function showAPODModal(data) {
+  let modal = document.getElementById('apod-modal');
+  if (modal) modal.remove();
+
+  modal = document.createElement('div');
+  modal.id = 'apod-modal';
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="this.remove()">
+      <div style="background:var(--surface);border:1px solid var(--glass-border);border-radius:16px;max-width:900px;max-height:90vh;overflow:auto;padding:24px;position:relative;" onclick="event.stopPropagation()">
+        <button onclick="this.closest('#apod-modal').remove()" style="position:absolute;top:12px;right:12px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--glass-border);border-radius:50%;color:var(--star-dim);cursor:pointer;font-size:18px;">&times;</button>
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:20px;margin-bottom:8px;color:var(--star);">${data.title || 'Astronomy Picture of the Day'}</h2>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--amber);margin-bottom:16px;">${data.date || ''} | ${data.copyright || 'NASA'}</p>
+        ${data.media_type === 'image'
+          ? `<img src="${data.hdurl || data.url}" alt="${data.title}" style="width:100%;border-radius:8px;margin-bottom:16px;max-height:60vh;object-fit:contain;">`
+          : `<iframe src="${data.url}" style="width:100%;height:400px;border:none;border-radius:8px;margin-bottom:16px;"></iframe>`
+        }
+        <p style="font-size:13px;line-height:1.7;color:var(--star-dim);">${data.explanation || ''}</p>
+        <a href="${data.hdurl || data.url}" target="_blank" style="display:inline-block;margin-top:16px;padding:10px 20px;background:var(--amber);color:var(--void);border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:500;text-decoration:none;">View Full Size</a>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+// ── Mars Weather Display ───────────────────────────────────────────
+function showMarsWeather() {
+  const data = nasaCache.marsWeather.data;
+  if (!data) return;
+
+  let modal = document.getElementById('mars-weather-modal');
+  if (modal) modal.remove();
+
+  const temp = data.AT?.av ? Math.round((data.AT.av - 32) * 5/9) : 'N/A';
+  const wind = data.HWS?.av ? Math.round(data.HWS.av) : 'N/A';
+  const pressure = data.PRE?.av ? data.PRE.av.toFixed(2) : 'N/A';
+
+  modal = document.createElement('div');
+  modal.id = 'mars-weather-modal';
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="this.remove()">
+      <div style="background:var(--surface);border:1px solid var(--glass-border);border-radius:16px;max-width:400px;padding:24px;position:relative;" onclick="event.stopPropagation()">
+        <button onclick="this.closest('#mars-weather-modal').remove()" style="position:absolute;top:12px;right:12px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--glass-border);border-radius:50%;color:var(--star-dim);cursor:pointer;">&times;</button>
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:18px;margin-bottom:4px;color:var(--star);">Mars Weather</h2>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--amber);margin-bottom:20px;">Sol ${data.sol || 'N/A'} | InSight Lander</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center;">
+          <div style="background:var(--surface-2);padding:16px;border-radius:8px;">
+            <div style="font-size:24px;font-weight:600;color:var(--star);">${temp}°C</div>
+            <div style="font-size:10px;color:var(--star-dim);margin-top:4px;">Temperature</div>
+          </div>
+          <div style="background:var(--surface-2);padding:16px;border-radius:8px;">
+            <div style="font-size:24px;font-weight:600;color:var(--star);">${wind}</div>
+            <div style="font-size:10px;color:var(--star-dim);margin-top:4px;">Wind (m/s)</div>
+          </div>
+          <div style="background:var(--surface-2);padding:16px;border-radius:8px;">
+            <div style="font-size:24px;font-weight:600;color:var(--star);">${pressure}</div>
+            <div style="font-size:10px;color:var(--star-dim);margin-top:4px;">Pressure (Pa)</div>
+          </div>
+        </div>
+        <p style="font-size:11px;color:var(--star-dim);margin-top:16px;text-align:center;">Data from NASA's InSight lander</p>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+// ── Asteroids Display ────────────────────────────────────────────
+function showAsteroids() {
+  const data = nasaCache.asteroids.data;
+  if (!data || !data.near_earth_objects) return;
+
+  let modal = document.getElementById('asteroids-modal');
+  if (modal) modal.remove();
+
+  // Get next 5 closest approaches
+  const allAsteroids = Object.values(data.near_earth_objects).flat()
+    .sort((a, b) => parseFloat(a.close_approach_data[0].miss_distance.kilometers) - parseFloat(b.close_approach_data[0].miss_distance.kilometers))
+    .slice(0, 5);
+
+  modal = document.createElement('div');
+  modal.id = 'asteroids-modal';
+  const asteroidRows = allAsteroids.map(a => {
+    const approach = a.close_approach_data[0];
+    const missDist = parseFloat(approach.miss_distance.kilometers).toLocaleString();
+    const size = Math.round((parseFloat(a.estimated_diameter.meters.estimated_diameter_max)));
+    return `
+      <div style="display:flex;justify-content:space-between;padding:12px;border-bottom:1px solid var(--glass-border);">
+        <div>
+          <div style="font-family:'Space Grotesk',sans-serif;font-size:14px;color:var(--star);font-weight:500;">${a.name.replace(/[()]/g, '')}</div>
+          <div style="font-size:10px;color:var(--star-dim);margin-top:2px;">Size: ${size}m | Approach: ${approach.close_approach_date_full || approach.close_approach_date}</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:14px;color:var(--amber);">${missDist} km</div>
+          <div style="font-size:10px;color:var(--star-dim);">Distance</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="this.remove()">
+      <div style="background:var(--surface);border:1px solid var(--glass-border);border-radius:16px;max-width:500px;max-height:80vh;overflow:auto;padding:24px;position:relative;" onclick="event.stopPropagation()">
+        <button onclick="this.closest('#asteroids-modal').remove()" style="position:absolute;top:12px;right:12px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--glass-border);border-radius:50%;color:var(--star-dim);cursor:pointer;">&times;</button>
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:18px;margin-bottom:4px;color:var(--star);">Near-Earth Asteroids</h2>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--amber);margin-bottom:16px;">${data.element_count} total this week | Next 5 closest approaches</p>
+        ${asteroidRows}
+        <p style="font-size:11px;color:var(--star-dim);margin-top:16px;text-align:center;">Data from NASA CNEOS</p>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+// ── NASA Images Gallery ──────────────────────────────────────────
+async function showPlanetImages(planetName) {
+  let modal = document.getElementById('nasa-images-modal');
+  if (modal) modal.remove();
+
+  modal = document.createElement('div');
+  modal.id = 'nasa-images-modal';
+  modal.innerHTML = `
+    <div style="position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px;" onclick="this.remove()">
+      <div style="background:var(--surface);border:1px solid var(--glass-border);border-radius:16px;max-width:800px;max-height:85vh;width:100%;overflow:auto;padding:24px;position:relative;" onclick="event.stopPropagation()">
+        <button onclick="this.closest('#nasa-images-modal').remove()" style="position:absolute;top:12px;right:12px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:var(--surface-2);border:1px solid var(--glass-border);border-radius:50%;color:var(--star-dim);cursor:pointer;">&times;</button>
+        <h2 style="font-family:'Space Grotesk',sans-serif;font-size:18px;margin-bottom:4px;color:var(--star);">NASA Photos: ${planetName}</h2>
+        <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--amber);margin-bottom:16px;">Loading from NASA Image Library...</p>
+        <div id="nasa-images-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;"></div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+
+  const images = await searchNASAImages(planetName + ' planet nasa');
+  const grid = document.getElementById('nasa-images-grid');
+
+  if (images.length === 0) {
+    grid.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--star-dim);padding:40px;">No images found</p>';
+    return;
+  }
+
+  grid.innerHTML = images.map(img => `
+    <a href="${img.url}" target="_blank" style="display:block;border-radius:8px;overflow:hidden;border:1px solid var(--glass-border);transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">
+      <img src="${img.url}" alt="${img.title}" style="width:100%;aspect-ratio:1;object-fit:cover;">
+      <div style="padding:8px;background:var(--surface-2);">
+        <div style="font-size:11px;color:var(--star);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${img.title || 'NASA Image'}</div>
+      </div>
+    </a>
+  `).join('');
+}
+
+// Initialize on load
+initNASAFeatures();
 
 try {
 
@@ -2925,6 +3190,7 @@ function selectBody(key) {
     isTransitioning = true;
     targetSph.radius = BODIES[key].radius * 6 + 8;
     $('selected-tag') && ($('selected-tag').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:12px;height:12px;vertical-align:middle"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg> ' + BODIES[key].name);
+    if (typeof updateMarsButton === 'function') updateMarsButton(key);
   } else if (SPACECRAFT[key]) {
     selected = { key, data: SPACECRAFT[key], isBody: false };
     openPanel(SPACECRAFT[key]);
@@ -3255,6 +3521,24 @@ $('info-tour-btn').onclick = () => {
     $('btn-tour').click();
   }
 };
+
+// NASA Images button - show planet photos
+$('info-images-btn').onclick = () => {
+  const bodyName = selected ? selected.data.name : 'Solar System';
+  showPlanetImages(bodyName);
+};
+
+// Update Mars weather button visibility based on selection
+const marsBtn = document.getElementById('btn-mars-weather');
+if (marsBtn) {
+  marsBtn.style.display = 'none';
+}
+function updateMarsButton(key) {
+  const btn = document.getElementById('btn-mars-weather');
+  if (btn) {
+    btn.style.display = (key === 'mars') ? 'flex' : 'none';
+  }
+}
 
 document.querySelectorAll('.plat-btn').forEach(btn => {
   btn.onclick = () => {
