@@ -373,6 +373,30 @@
     color: var(--star-dim);
     text-transform: uppercase;
   }
+  .topbar-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface-2);
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    color: var(--star-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .topbar-btn:hover {
+    color: var(--star);
+    border-color: var(--amber);
+    background: rgba(245,184,106,0.1);
+  }
+  .topbar-btn svg {
+    transition: transform 0.2s;
+  }
+  .topbar-btn:hover svg {
+    transform: scale(1.1);
+  }
   .topbar-right {
     display: flex;
     align-items: center;
@@ -1383,6 +1407,108 @@
   @media (prefers-reduced-motion: reduce) {
     * { transition: none !important; animation: none !important; }
   }
+  
+  /* ── Context Menu ── */
+  .ctx-menu {
+    position: fixed;
+    z-index: 1000;
+    background: rgba(30, 35, 50, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(237,229,216,0.15);
+    border-radius: 10px;
+    padding: 12px;
+    min-width: 220px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    pointer-events: auto;
+  }
+  .ctx-menu-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .ctx-menu-type {
+    font-size: 11px;
+    color: #7A7468;
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(237,229,216,0.1);
+  }
+  .ctx-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #EDE5D8;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+    margin-bottom: 4px;
+  }
+  .ctx-menu-btn:hover {
+    background: rgba(245,184,106,0.15);
+    color: #F5B86A;
+  }
+  .ctx-menu-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* ── Print Styles ── */
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #print-section,
+    #print-section * {
+      visibility: visible;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+    #scene {
+      display: none !important;
+    }
+    #print-section {
+      z-index: 9999;
+      background: var(--void) !important;
+    }
+    #print-header {
+      background: var(--glass);
+      border-bottom: 1px solid var(--glass-border);
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #print-planet-info {
+      background: var(--surface);
+      border: 1px solid var(--glass-border);
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 800px;
+    }
+    #print-stats {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+    .print-stat {
+      text-align: center;
+      flex: 1;
+    }
+  }
 </style>
 </head>
 <body>
@@ -1416,8 +1542,26 @@
     </div>
   </div>
   <div class="topbar-right">
+    <button class="topbar-btn" id="btn-print" title="Print this view" onclick="doPrint()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16">
+        <path d="M6 9V4a2 2 0 012-2h8a2 2 0 012 2v5"/>
+        <path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h2"/>
+        <rect x="6" y="14" width="12" height="8" rx="1"/>
+        <line x1="12" y1="9" x2="12" y2="14"/>
+      </svg>
+    </button>
+    <button class="topbar-btn" id="btn-apod" title="NASA Astronomy Picture of the Day" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="16" height="16">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 6v6l4 2"/>
+      </svg>
+    </button>
     <div class="topbar-date" id="topbar-date">—</div>
-
+    <button class="topbar-theme" id="theme-toggle" title="Toggle theme">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="18" height="18">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>
+      </svg>
+    </button>
   </div>
 </header>
 
@@ -1702,6 +1846,19 @@
 
 <canvas id="scene"></canvas>
 
+<!-- Print Section (hidden, visible only when printing) -->
+<div id="print-section" style="display: none;">
+  <div id="print-header">
+    <h1 style="font-family: 'Space Grotesk', sans-serif; font-size: 32px; margin-bottom: 8px;">Solar System Explorer</h1>
+    <p style="font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #7A7468;">Interactive 3D Visualization</p>
+  </div>
+  <div id="print-planet-info">
+    <h2 id="print-planet-name" style="font-family: 'Space Grotesk', sans-serif; font-size: 24px; margin-bottom: 8px;">—</h2>
+    <p id="print-planet-desc" style="font-size: 14px; line-height: 1.6; margin-bottom: 16px;">—</p>
+    <div id="print-stats"></div>
+  </div>
+</div>
+
 <!-- SEO Content (hidden from users, visible to search engines) -->
 <div style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;" aria-hidden="true">
 <h1 style="position:absolute;left:-9999px;top:-9999px;">Solar System Explorer - Free Interactive 3D Solar System Simulator Online</h1>
@@ -1752,6 +1909,87 @@ function setProgress(pct, msg) {
   if (sub) sub.textContent = msg || SETUP_STEP[setupStep] || 'Loading...';
   setupStep++;
 }
+
+// Show detailed planet info (from right-click or tour)
+function showPlanetDetail(key) {
+  const body = BODIES[key] || SPACECRAFT[key];
+  if (!body) return;
+  const menu = document.getElementById('context-menu');
+  if (menu) menu.remove();
+
+  selectBody(key);
+  $('info-panel').classList.add('open');
+
+  // Update print section for printing
+  updatePrintSection(key);
+}
+
+function updatePrintSection(key) {
+  const body = BODIES[key] || SPACECRAFT[key];
+  if (!body) return;
+  document.getElementById('print-planet-name').textContent = body.name;
+  document.getElementById('print-planet-desc').textContent = body.desc || '';
+
+  const statsHtml = [
+    ['Mass', body.mass ? (body.mass + ' kg') : '-'],
+    ['Diameter', body.diameter ? (body.diameter + ' km') : '-'],
+    ['Orbit Period', body.orbit ? (body.orbit + ' days') : '-'],
+    ['Distance', body.distance ? (body.distance + ' AU') : '-'],
+    ['Moons', body.moons !== undefined ? body.moons : '-']
+  ].map(function(item) {
+    return '<div class="print-stat"><div style="font-size:10px;color:#7A7468;">' + item[0] + '</div><div style="font-family:\'Space Grotesk\',sans-serif;font-size:16px;font-weight:500;">' + item[1] + '</div></div>';
+  }).join('');
+  document.getElementById('print-stats').innerHTML = statsHtml;
+}
+
+// Print function
+function doPrint() {
+  updatePrintSection(selected ? selected.data.key : 'sun');
+  window.print();
+}
+
+// NASA API Integration
+async function fetchNASAData() {
+  try {
+    const apodResponse = await fetch('https://api.nasa.gov/planetary/apod?api_key=DEMO_KEY');
+    const apodData = await apodResponse.json();
+
+    const startDate = new Date().toISOString().split('T')[0];
+    const endDate = new Date(Date.now() + 7*24*60*60*1000).toISOString().split('T')[0];
+    const neoResponse = await fetch('https://api.nasa.gov/neo/rest/v1/feed?start_date=' + startDate + '&end_date=' + endDate + '&api_key=DEMO_KEY');
+    const neoData = await neoResponse.json();
+
+    return { apod: apodData, neo: neoData };
+  } catch (e) {
+    console.warn('NASA API fetch failed:', e);
+    return { apod: null, neo: null };
+  }
+}
+
+// Display APOD as background option
+async function loadAPOD() {
+  const data = await fetchNASAData();
+  if (data.apod && data.apod.url) {
+    const btn = document.getElementById('btn-apod');
+    if (btn) {
+      btn.style.display = 'flex';
+      btn.style.width = 'auto';
+      btn.style.padding = '0 10px';
+      btn.style.gap = '6px';
+      btn.style.fontSize = '11px';
+      btn.onclick = function() {
+        window.open(data.apod.hdurl || data.apod.url, '_blank');
+      };
+    }
+  }
+  if (data.neo && data.neo.near_earth_objects) {
+    const totalNEOs = Object.values(data.neo.near_earth_objects).flat().length;
+    console.log('Near-Earth Objects this week:', totalNEOs);
+  }
+}
+
+// Initialize NASA data on load
+loadAPOD();
 
 try {
 
@@ -2648,6 +2886,35 @@ canvas.addEventListener('touchend', e => {
   }
   tStart = null; tDist = null;
 });
+
+// Right-click context menu
+canvas.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  const hits = getIntersect(e);
+  if (hits.length) {
+    const key = hits[0].object.userData.key;
+    const body = BODIES[key] || SPACECRAFT[key];
+    if (body) showContextMenu(e.clientX, e.clientY, body);
+  }
+});
+
+function showContextMenu(x, y, body) {
+  let menu = document.getElementById('context-menu');
+  if (menu) menu.remove();
+  menu = document.createElement('div');
+  menu.id = 'context-menu';
+  menu.className = 'ctx-menu';
+  menu.style.left = x + 'px';
+  menu.style.top = y + 'px';
+  menu.innerHTML = '<div class="ctx-menu-title">' + body.name + '</div><div class="ctx-menu-type">' + (body.type || 'Celestial Body') + '</div><button class="ctx-menu-btn" onclick="showPlanetDetail(\'' + body.key + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg> View Full Details</button><button class="ctx-menu-btn" onclick="selectBody(\'' + body.key + '\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Focus on Body</button>';
+  document.body.appendChild(menu);
+  setTimeout(() => {
+    document.addEventListener('click', function hideMenu() {
+      menu.remove();
+      document.removeEventListener('click', hideMenu);
+    });
+  }, 10);
+}
 
 // ── SELECTION ─────────────────────────────────────────────
 function selectBody(key) {
